@@ -1,0 +1,33 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 軽い依存だけ入れる
+        run: pip install --quiet ruff numpy pillow pyyaml
+
+      - name: Lint (ruff, 参考表示)
+        continue-on-error: true
+        run: ruff check src tools tests
+
+      - name: 単体テスト（幾何・処方変換・投影）
+        run: python tests/test_units.py
+
+      - name: 提出物チェック（ファイル構成＋全ソースの構文＋処方変換）
+        run: python tools/check_deliverable.py

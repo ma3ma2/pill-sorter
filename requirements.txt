@@ -1,0 +1,8 @@
+# 服薬仕分けロボット 依存（genesis-world のみバージョン固定。他は最新版を使用）
+genesis-world==1.4.3
+numpy
+imageio
+imageio-ffmpeg
+pillow
+PyYAML
+google-genai

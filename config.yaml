@@ -1,0 +1,29 @@
+# 服薬仕分けロボットの設定（ここを変えると環境が変わっても調整できる）
+geometry:            # ケースの寸法[m] と薬の大きさ
+  cell: 0.07
+  case_x0: 0.58
+  case_y0: -0.245
+  wall_h: 0.008
+  pill: 0.03
+pills:               # 薬の色（0-1）
+  colors:
+    red:    [0.9, 0.1, 0.1]
+    blue:   [0.1, 0.3, 0.95]
+    yellow: [0.95, 0.85, 0.1]
+    green:  [0.1, 0.7, 0.2]
+prescription:
+  main:  "赤は月と水と金の朝、青は火と木の夜、黄は土の朝"     # 仕分け用
+  check: "赤は月の朝、青は火の夜、黄は水の朝"                 # 確認実験用
+faults:              # わざと起こす失敗（色 -> outside: ケース外へ / wrong: 違うマスへ）
+  red: outside
+  yellow: wrong
+gemini:              # 使うモデル候補（先頭から順に試す）
+  models: ["gemini-3.8-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-2.5-flash", "gemini-2.0-flash"]
+robot:
+  grip_z: 0.13
+  lift_z: 0.28
+  place_z: 0.14     # 薬を放す高さ。高すぎるとケース内で跳ねて外へ出る。
+                    # grip_z(0.13) より低くすると掴んだ薬を床に押しつけるので不可。仕切り(0.008)を越えるには 0.138 以上。
+video:
+  fps: 30
+  seed: 0            # 乱数シード（再現性）

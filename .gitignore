@@ -1,0 +1,17 @@
+# 実行時に生成されるもの
+out/
+plan_cache.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# 環境・エディタ
+.env
+.ipynb_checkpoints/
+.vscode/
+
+# ツールのキャッシュ
+.pytest_cache/
+.ruff_cache/
