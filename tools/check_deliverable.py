@@ -36,7 +36,7 @@ assert any("git clone" in "".join(c["source"]) for c in nb["cells"]), "ノート
 os.chdir(root)                                     # config.yaml を読めるように
 os.environ.pop("GEMINI_API_KEY", None)             # ルール経路を強制
 sys.path.insert(0, str(src))
-import planner
+import planner  # noqa: E402  # sys.path を通してから読み込む
 
 tasks, how = planner.make_plan("赤は月の朝、青は火の夜")
 assert how == "rules", f"想定外の変換経路: {how}"

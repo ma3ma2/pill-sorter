@@ -28,28 +28,36 @@ os.makedirs("out", exist_ok=True)
 cam.start_recording(save_to_filename="out/demo_pick.mp4", fps=50)
 def step(n):
     for _ in range(n):
-        scene.step(); cam.render()
+        scene.step()
+        cam.render()
 def move(pos, grip, n=80):
     q = franka.inverse_kinematics(link=ee, pos=np.array(pos), quat=np.array([0, 1, 0, 0]))
     q[-2:] = grip
     path = franka.plan_path(qpos_goal=q, num_waypoints=n) if hasattr(franka, "plan_path") else None
     if path is not None:
         for wp in path:
-            franka.control_dofs_position(wp); scene.step(); cam.render()
+            franka.control_dofs_position(wp)
+            scene.step()
+            cam.render()
     else:
-        franka.control_dofs_position(q); step(n)
+        franka.control_dofs_position(q)
+        step(n)
 OPEN = 0.04
 px, py, _ = pill.get_pos().cpu().numpy()
 move([px, py, 0.25], OPEN)
 move([px, py, 0.13], OPEN, 60)
 franka.control_dofs_position(q:=franka.get_dofs_position()[:7], motors)
-franka.control_dofs_force(np.array([-1.0, -1.0]), fingers); step(60)
+franka.control_dofs_force(np.array([-1.0, -1.0]), fingers)
+step(60)
 q = franka.inverse_kinematics(link=ee, pos=np.array([px, py, 0.3]), quat=np.array([0,1,0,0]))
-franka.control_dofs_position(q[:-2], motors); step(100)
+franka.control_dofs_position(q[:-2], motors)
+step(100)
 q = franka.inverse_kinematics(link=ee, pos=np.array([cx, cy, 0.3]), quat=np.array([0,1,0,0]))
-franka.control_dofs_position(q[:-2], motors); step(150)
+franka.control_dofs_position(q[:-2], motors)
+step(150)
 franka.control_dofs_force(np.array([0.0, 0.0]), fingers)
-franka.control_dofs_position(np.array([OPEN, OPEN]), fingers); step(120)
+franka.control_dofs_position(np.array([OPEN, OPEN]), fingers)
+step(120)
 pp = pill.get_pos().cpu().numpy()
 ok = abs(pp[0]-cx) < 0.045 and abs(pp[1]-cy) < 0.045
 print("pill final pos", pp, "IN_CELL" if ok else "MISS")

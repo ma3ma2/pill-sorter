@@ -52,11 +52,13 @@ def detect_from_image(img, K, E):
             q, pix = deque([(i, j)]), []
             seen[i, j] = True
             while q:
-                a, b = q.popleft(); pix.append((a, b))
+                a, b = q.popleft()
+                pix.append((a, b))
                 for da, db in ((1, 0), (-1, 0), (0, 1), (0, -1)):
                     x, y = a + da, b + db
                     if 0 <= x < H and 0 <= y < W and mask[x, y] and not seen[x, y] and cls[x, y] == cls[i, j]:
-                        seen[x, y] = True; q.append((x, y))
+                        seen[x, y] = True
+                        q.append((x, y))
             if len(pix) < 12:                 # 小さすぎる塊はノイズとして無視
                 continue
             a, b = np.mean(pix, 0)
@@ -78,8 +80,10 @@ def read_grid(img, K, E):
     grid, outside = {}, []
     for b in detect_from_image(img, K, E):
         c = blob_to_cell(b)
-        if c: grid[c] = b["color"]
-        else: outside.append(b)
+        if c:
+            grid[c] = b["color"]
+        else:
+            outside.append(b)
     return grid, outside
 
 

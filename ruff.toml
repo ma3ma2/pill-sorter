@@ -1,0 +1,7 @@
+# Ruff（Lint）の設定。ローカルとCIで同じ判定になるように、対象ルールを明示する。
+# RUF系の「曖昧な全角文字」指摘（RUF001〜003）は日本語の文章に対して誤検知になるため選ばない。
+line-length = 120
+target-version = "py311"
+
+[lint]
+select = ["E4", "E7", "E9", "F", "I", "BLE", "S110", "SIM", "PLW", "FURB"]

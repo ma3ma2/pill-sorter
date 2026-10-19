@@ -20,7 +20,7 @@ jobs:
           python-version: "3.11"
 
       - name: 軽い依存だけ入れる
-        run: pip install --quiet ruff numpy pillow pyyaml
+        run: pip install --quiet "ruff==0.17.1" numpy pillow pyyaml   # 版を固定して結果を安定させる
 
       - name: Lint (ruff, 参考表示)
         continue-on-error: true

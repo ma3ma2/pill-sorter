@@ -183,9 +183,11 @@ def run(check, video_path=None, seed=None, random_faults=False):
             else:
                 dst = S.cell_center(*wrong_target[t["pill"]])            # 違うマスへ
                 msg = f"[失敗を仕込み] {t['pill']} をわざと違うマスに入れる"
-            sub["text"] = msg; print("  " + msg)
+            sub["text"] = msg
+            print("  " + msg)
         else:
-            dst = target; sub["text"] = f"{t['pill']} を {t['day']}-{t['slot']} へ"
+            dst = target
+            sub["text"] = f"{t['pill']} を {t['day']}-{t['slot']} へ"
         bot.pick_place(src, dst)
     bot.park()
     sub["text"] = "真上カメラの画像から仕分け結果を確認中…"
@@ -208,15 +210,18 @@ def run(check, video_path=None, seed=None, random_faults=False):
                     continue
                 b = next((b for b in outside if b["color"] == t["pill"]), None)
                 if b:
-                    src = (b["x"], b["y"]); why = f"{t['pill']} がケースの外 → 回収して入れ直す"
+                    src = (b["x"], b["y"])
+                    why = f"{t['pill']} がケースの外 → 回収して入れ直す"
                 else:
                     c = next((c for c, col in grid.items() if col == t["pill"]), None)
                     if c is None:
                         continue
                     src = S.cell_center(*c)
                     why = f"{t['pill']} が {c[0]}-{c[1]} → 正しい {target[0]}-{target[1]} へ入れ直す"
-                sub["text"] = "ずれを検出: " + why; print("  取り直し:", why)
-                bot.goto(*src, S.LIFT_Z); bot.pick_place(src, S.cell_center(*target))
+                sub["text"] = "ずれを検出: " + why
+                print("  取り直し:", why)
+                bot.goto(*src, S.LIFT_Z)
+                bot.pick_place(src, S.cell_center(*target))
                 bot.park()
                 grid, outside, vlm = read_state(top.render()[0], tasks, K, E, use_vlm=False)
         sub["text"] = "再確認: すべて正しいマスに収まりました" if not (V.compare(tasks, grid)[0] or V.compare(tasks, grid)[1]) else "再確認: まだずれが残っています"

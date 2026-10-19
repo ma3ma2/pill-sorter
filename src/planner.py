@@ -7,12 +7,13 @@ GEMINI_API_KEY があれば Gemini に変換させ、無ければ簡易ルール
 import json
 import os
 
+from config import CONFIG
+
 DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 SLOTS = ["am", "pm"]
 PILLS = ["red", "blue", "yellow", "green"]
 
 # 寸法は config.yaml から読む（環境が変わってもファイルで調整できる）
-from config import CONFIG
 
 _G = CONFIG["geometry"]
 CELL = _G["cell"]                 # 1マスの大きさ[m]
@@ -89,7 +90,7 @@ def gemini_generate(contents, config=None, retries=3):
         for attempt in range(retries):
             try:
                 res = client.models.generate_content(**kw)
-                global LAST_MODEL
+                global LAST_MODEL  # noqa: PLW0603  # ノートが最後に使ったモデル名を表示するため
                 LAST_MODEL = model
                 return res
             except Exception as e:

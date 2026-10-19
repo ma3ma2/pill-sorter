@@ -81,27 +81,37 @@ class Robot:
 
     def park(self, n=70):
         """撮影前にアームを初期姿勢へ戻し、ケースを隠さないようにする。"""
-        self.f.control_dofs_position(self.home, self.arm); self.step(n)
+        self.f.control_dofs_position(self.home, self.arm)
+        self.step(n)
 
     def step(self, n):
         for k in range(n):
             self.s.step()
-            if k % 2 == 0: self.frames()        # 2ステップに1枚録画（動画を短く）
+            if k % 2 == 0:
+                self.frames()                  # 2ステップに1枚録画（動画を短く）
 
     def goto(self, x, y, z, n=90):
         q = self.f.inverse_kinematics(link=self.ee, pos=np.array([x, y, z]), quat=DOWN)
-        self.f.control_dofs_position(q[:7], self.arm); self.step(n)
+        self.f.control_dofs_position(q[:7], self.arm)
+        self.step(n)
 
     def grip(self, close):
-        if close: self.f.control_dofs_force(np.array([-1.0, -1.0]), self.fing)
-        else:     self.f.control_dofs_position(np.array([0.04, 0.04]), self.fing)
+        if close:
+            self.f.control_dofs_force(np.array([-1.0, -1.0]), self.fing)
+        else:
+            self.f.control_dofs_position(np.array([0.04, 0.04]), self.fing)
         self.step(50)
 
     def pick_place(self, src, dst):
         self.grip(False)
-        self.goto(*src, LIFT_Z); self.goto(*src, GRIP_Z, 60); self.grip(True)
-        self.goto(*src, LIFT_Z, 60); self.goto(*dst, LIFT_Z, 110); self.goto(*dst, PLACE_Z, 50)
-        self.grip(False); self.goto(*dst, LIFT_Z, 40)
+        self.goto(*src, LIFT_Z)
+        self.goto(*src, GRIP_Z, 60)
+        self.grip(True)
+        self.goto(*src, LIFT_Z, 60)
+        self.goto(*dst, LIFT_Z, 110)
+        self.goto(*dst, PLACE_Z, 50)
+        self.grip(False)
+        self.goto(*dst, LIFT_Z, 40)
 
 
 def main(rx=RX, out="out/sorter.mp4"):
@@ -113,7 +123,8 @@ def main(rx=RX, out="out/sorter.mp4"):
     import imageio
     writer = imageio.get_writer(out, fps=CONFIG["video"]["fps"])
     def frames():
-        a = cam.render()[0]; b = top.render()[0]
+        a = cam.render()[0]
+        b = top.render()[0]
         writer.append_data(_pad16(np.concatenate([a, b], axis=1)))
     bot = Robot(scene, franka, frames)
     bot.step(30)
@@ -126,7 +137,8 @@ def main(rx=RX, out="out/sorter.mp4"):
     ok = 0
     for t, p in zip(tasks, pills):
         got = cell_of(p.get_pos().cpu().numpy())
-        hit = got == (t["day"], t["slot"]); ok += hit
+        hit = got == (t["day"], t["slot"])
+        ok += hit
         print(f"  {t['pill']:6s} → {t['day']}-{t['slot']}  実際: {got}  {'OK' if hit else 'NG'}")
     print(f"正答 {ok}/{len(tasks)}")
     import json

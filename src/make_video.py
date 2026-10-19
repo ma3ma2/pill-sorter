@@ -62,7 +62,8 @@ def render_bg():
 
 def card(title, lines, dur, fname, right=None):
     """タイトルと本文の静止カードを動画にする。背景にシーンの1コマを薄く敷く。"""
-    img = Image.fromarray(_bg()); d = ImageDraw.Draw(img, "RGBA")
+    img = Image.fromarray(_bg())
+    d = ImageDraw.Draw(img, "RGBA")
     d.rectangle([0, 0, W, H], fill=(10, 14, 20, 205))   # 背景を暗くして文字を読みやすく
     d.text((60, 70), title, font=FT, fill=(255, 255, 255))
     d.line([60, 150, W - 60, 150], fill=(90, 110, 140), width=2)
@@ -72,10 +73,12 @@ def card(title, lines, dur, fname, right=None):
     gap = min(48, max(26, (bottom - top) // n))
     fs = FS if gap >= 40 else F(26)
     y = top
-    for ln in lines:
-        col = (230, 230, 230)
-        if ln.startswith("# "): ln, col = ln[2:], (120, 200, 255)
-        d.text((60, y), ln, font=fs, fill=col); y += gap
+    for line in lines:
+        head = line.startswith("# ")
+        text = line[2:] if head else line
+        col = (120, 200, 255) if head else (230, 230, 230)
+        d.text((60, y), text, font=fs, fill=col)
+        y += gap
     if right is not None:                     # 右側に表などを貼る（暗くしない）
         img.paste(right, (760, 150))
     arr = np.asarray(img)
@@ -87,7 +90,8 @@ def card(title, lines, dur, fname, right=None):
 
 def band(frame, text, speed=False, tag=""):
     """下に字幕、右上に速度タグを焼き込む。"""
-    img = Image.fromarray(frame); d = ImageDraw.Draw(img, "RGBA")
+    img = Image.fromarray(frame)
+    d = ImageDraw.Draw(img, "RGBA")
     if text:
         d.rectangle([0, H - 60, W, H], fill=(0, 0, 0, 170))
         d.text((20, H - 48), text, font=FS, fill=(255, 255, 255))
@@ -158,7 +162,9 @@ def seg_sort():
     bot.step(30)
     for t, p in zip(tasks, pills):
         bot.pick_place(p.get_pos().cpu().numpy()[:2], S.cell_center(t["day"], t["slot"]))
-    bot.park(); bot.step(20); w.close()
+    bot.park()
+    bot.step(20)
+    w.close()
 
 
 def seg_check():
@@ -179,14 +185,18 @@ def seg_check():
     bot = S.Robot(scene, franka, cb)
     bot.step(30)
     for t, p in zip(tasks, pills):
-        src = p.get_pos().cpu().numpy()[:2]; target = S.cell_center(t["day"], t["slot"])
+        src = p.get_pos().cpu().numpy()[:2]
+        target = S.cell_center(t["day"], t["slot"])
         if t["pill"] in C.FAULTS:
             if C.FAULTS[t["pill"]] == "outside":
-                dst = C.OUTSIDE_SPOTS[0]; sub["t"] = f"わざと失敗: {t['pill']} をケースの外へ"
+                dst = C.OUTSIDE_SPOTS[0]
+                sub["t"] = f"わざと失敗: {t['pill']} をケースの外へ"
             else:
-                dst = S.cell_center(*C._wrong_cell(tasks, None, False)); sub["t"] = f"わざと失敗: {t['pill']} を違うマスへ"
+                dst = S.cell_center(*C._wrong_cell(tasks, None, False))
+                sub["t"] = f"わざと失敗: {t['pill']} を違うマスへ"
         else:
-            dst = target; sub["t"] = f"{t['pill']} を {t['day']}-{t['slot']} へ"
+            dst = target
+            sub["t"] = f"{t['pill']} を {t['day']}-{t['slot']} へ"
         bot.pick_place(src, dst)
     bot.park()
     sub["t"] = "真上カメラの画像で仕分け結果を確認します"
@@ -203,17 +213,23 @@ def seg_check():
                 continue
             b = next((b for b in outside if b["color"] == t["pill"]), None)
             if b:
-                src = (b["x"], b["y"]); why = f"ずれ検出: {t['pill']} がケース外 → 回収して入れ直す"
+                src = (b["x"], b["y"])
+                why = f"ずれ検出: {t['pill']} がケース外 → 回収して入れ直す"
             else:
                 c = next((c for c, col in grid.items() if col == t["pill"]), None)
-                if c is None: continue
-                src = S.cell_center(*c); why = f"ずれ検出: {t['pill']} が {c[0]}-{c[1]} → 正しいマスへ"
+                if c is None:
+                    continue
+                src = S.cell_center(*c)
+                why = f"ずれ検出: {t['pill']} が {c[0]}-{c[1]} → 正しいマスへ"
             sub["t"] = why
-            bot.goto(*src, S.LIFT_Z); bot.pick_place(src, S.cell_center(*target)); bot.park()
+            bot.goto(*src, S.LIFT_Z)
+            bot.pick_place(src, S.cell_center(*target))
+            bot.park()
             grid, outside, vlm = C.read_state(top.render()[0], tasks, K, E, use_vlm=False)
     _w, _m, _e = V.compare(tasks, grid)
     sub["t"] = "再確認: すべて正しいマスに収まりました" if not (_w or _m) else "再確認: まだずれが残っています"
-    bot.step(180); w.close()      # 成功の字幕を約3秒見せる
+    bot.step(180)                 # 成功の字幕を約3秒見せる
+    w.close()
 
 
 def _result_lines():
