@@ -4,7 +4,8 @@ GEMINI_API_KEY があれば Gemini に変換させ、無ければ簡易ルール
 出力は [{"pill": "red", "day": "mon", "slot": "am"}, ...] の形。
 どちらの経路でも最後に validate() で範囲外の指定を弾く（AIの出力をそのまま信用しない）。
 """
-import json, os, re
+import json
+import os
 
 DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
 SLOTS = ["am", "pm"]
@@ -12,6 +13,7 @@ PILLS = ["red", "blue", "yellow", "green"]
 
 # 寸法は config.yaml から読む（環境が変わってもファイルで調整できる）
 from config import CONFIG
+
 _G = CONFIG["geometry"]
 CELL = _G["cell"]                 # 1マスの大きさ[m]
 CASE_X0, CASE_Y0 = _G["case_x0"], _G["case_y0"]
@@ -76,6 +78,7 @@ def gemini_generate(contents, config=None, retries=3):
     ルール/画像処理へフォールバックする。
     """
     import time
+
     from google import genai  # pip install google-genai
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
     last = None
@@ -147,7 +150,7 @@ def _cache_get(key):
     try:
         with open(CACHE_PATH, encoding="utf-8") as f:
             return json.load(f).get(key)
-    except Exception:
+    except Exception:  # noqa: BLE001  # キャッシュは無くても動く
         return None
 
 
@@ -161,7 +164,7 @@ def _cache_put(key, tasks):
         d[key] = tasks
         with open(CACHE_PATH, "w", encoding="utf-8") as f:
             json.dump(d, f, ensure_ascii=False)
-    except Exception:
+    except Exception:  # noqa: BLE001, S110  # キャッシュ保存は失敗してもよい
         pass
 
 
@@ -182,7 +185,7 @@ def make_plan(text):
             tasks = validate(plan_with_gemini(text))
             _cache_put(key, tasks)
             return tasks, "gemini"
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001  # 失敗したらルール変換に切り替える
             print("[planner] Gemini失敗、ルールに切替:", e)
     return validate(plan_with_rules(text)), "rules"
 

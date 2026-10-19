@@ -4,7 +4,13 @@
 結果は out/summary.json に保存し、Markdown の表を標準出力に出す。
 シミュレーションを毎回走らせるため時間がかかる（目安: 1試行 1〜3 分）。
 """
-import argparse, json, os, re, statistics, subprocess, sys
+import argparse
+import json
+import os
+import re
+import statistics
+import subprocess
+import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -17,7 +23,7 @@ def run_one(check, seed, gpu):
     if gpu:
         args.append("--gpu")
     env = dict(os.environ, PYTHONPATH="src", PYOPENGL_PLATFORM="osmesa")
-    p = subprocess.run(args, cwd=ROOT, env=env, capture_output=True, text=True)
+    p = subprocess.run(args, check=False, cwd=ROOT, env=env, capture_output=True, text=True)
     m = re.search(r"RESULT (\{.*\})", p.stdout)
     if not m:
         print("失敗した試行の出力:", (p.stdout or "")[-400:], (p.stderr or "")[-400:])

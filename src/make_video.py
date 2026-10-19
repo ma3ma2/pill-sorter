@@ -7,12 +7,19 @@
   python src/make_video.py --seg result   # 結果とまとめ
   python src/make_video.py --seg concat   # out/final.mp4 に連結
 """
-import os, sys, json, subprocess, numpy as np, imageio
+import json
+import os
+import subprocess
+import sys
+
+import imageio
+import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-import planner as P
+
 import overlay as O
-from textutil import find_font
+import planner as P
 from config import CONFIG
+from textutil import find_font
 
 FPS = CONFIG["video"]["fps"]
 W, H = 1440, 544
@@ -40,10 +47,12 @@ def _bg():
 
 def render_bg():
     """カードの背景にするため、シーンの1コマを描画して保存する。"""
-    import genesis as gs, sorter as S
+    import genesis as gs
+
+    import sorter as S
     gs.init(backend=gs.gpu if "--gpu" in sys.argv else gs.cpu, logging_level="warning")
     tasks, _ = S.make_plan("赤は月の朝、青は火の夜")
-    scene, franka, pills, cam, top = S.build_scene(tasks)
+    scene, _franka, _pills, cam, top = S.build_scene(tasks)
     for _ in range(30):
         scene.step()
     frame = S._pad16(np.concatenate([cam.render()[0], top.render()[0]], axis=1))
@@ -103,7 +112,7 @@ def _target_table(rx):
     tasks, _ = P.make_plan(rx)
     img = Vz.grid_image(tasks, {}, "目標の配置", show_ok=False, show_plan=True)
     w = 640                                  # 左の文章と重ならない大きさに縮める
-    return img.resize((w, int(round(img.height * w / img.width))))
+    return img.resize((w, round(img.height * w / img.width)))
 
 
 def seg_title():
@@ -129,7 +138,9 @@ def _overlay_writer(fname, speed=False, tag=""):
 
 
 def seg_sort():
-    import genesis as gs, sorter as S
+    import genesis as gs
+
+    import sorter as S
     gs.init(backend=gs.gpu if "--gpu" in sys.argv else gs.cpu, logging_level="warning")
     tasks, _ = S.make_plan(RX_MAIN)
     scene, franka, pills, cam, top = S.build_scene(tasks)
@@ -151,7 +162,11 @@ def seg_sort():
 
 
 def seg_check():
-    import genesis as gs, sorter as S, verifier as V, sorter_check as C
+    import genesis as gs
+
+    import sorter as S
+    import sorter_check as C
+    import verifier as V
     gs.init(backend=gs.gpu if "--gpu" in sys.argv else gs.cpu, logging_level="warning")
     tasks, _ = S.make_plan(C.PLAN)
     scene, franka, pills, cam, top = S.build_scene(tasks)
@@ -208,7 +223,8 @@ def _result_lines():
     ノートの手順で作った「決定的な実験」の値だけを見る。
     """
     try:
-        data = json.load(open(os.path.join(OUT, "metrics.json"), encoding="utf-8"))
+        with open(os.path.join(OUT, "metrics.json"), encoding="utf-8") as f:
+            data = json.load(f)
         fixed = [r for r in data if not r.get("random_faults")]
         no = [r for r in fixed if r["mode"] == "no_check"]
         ch = [r for r in fixed if r["mode"] == "check"]
@@ -220,7 +236,7 @@ def _result_lines():
                     f"・確認あり: マス正答 {ch[-1]['score']}/{ch[-1]['total']}",
                     "",
                     last]
-    except Exception:
+    except Exception:  # noqa: BLE001, S110  # 記録が無ければ中立の表示にする
         pass
     return ["・確認なし／確認ありを比較（結果は out/metrics.json に保存）"]
 
@@ -238,8 +254,7 @@ def seg_concat():
             "seg_check.mp4", "seg_result.mp4", "seg_end.mp4"]
     lst = os.path.join(OUT, "list.txt")
     with open(lst, "w") as f:
-        for s in segs:
-            f.write(f"file '{s}'\n")
+        f.writelines(f"file '{s}'\n" for s in segs)
     import imageio_ffmpeg
     exe = imageio_ffmpeg.get_ffmpeg_exe()
     subprocess.run([exe, "-y", "-f", "concat", "-safe", "0", "-i", "list.txt",

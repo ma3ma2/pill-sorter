@@ -5,11 +5,12 @@ GEMINI_API_KEY があるときは Gemini(VLM) にもマスと色を読ませて�
 （VLMは座標は返さない。取り直しの座標は画像処理側で求める）。
 """
 import numpy as np
-from planner import DAYS, SLOTS, CELL, CASE_X0, CASE_Y0, cell_of_xy
+
 from config import CONFIG
+from planner import CASE_X0, DAYS, SLOTS, cell_of_xy
 
 # 薬の色は config.yaml から（0-1 → 0-255）。色検出の照合に使う。
-REF = {k: tuple(int(round(c * 255)) for c in v) for k, v in CONFIG["pills"]["colors"].items()}
+REF = {k: tuple(round(c * 255) for c in v) for k, v in CONFIG["pills"]["colors"].items()}
 
 
 def _pixel_to_world(u, v, K, E, z=0.015):
@@ -102,11 +103,14 @@ def read_grid_vlm(img, plan=None):
     plan（期待する作業リスト）は渡さない: 期待値を教えると「画像を読む」ではなく
     「答えを写す」になり、独立した二重チェックにならないため。
     """
-    import os, json
-    from google import genai
-    import imageio.v3 as iio
-    from planner import PILLS, gemini_generate
+    import json
+    import os
     import tempfile
+
+    import imageio.v3 as iio
+    from google import genai
+
+    from planner import PILLS, gemini_generate
     path = os.path.join(tempfile.gettempdir(), "pill_sorter_top_vlm.png")
     iio.imwrite(path, img)
     c = genai.Client(api_key=os.environ["GEMINI_API_KEY"])

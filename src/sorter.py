@@ -4,9 +4,25 @@
       → 置いた位置から各マスの中身を判定して正誤を表示。
 実行: python src/sorter.py  [--gpu]
 """
-import sys, numpy as np, genesis as gs
-from planner import make_plan, DAYS, SLOTS, CELL, CASE_X0, CASE_Y0, WALL_H, PILL, cell_center, cell_of_xy
+import sys
+
+import genesis as gs
+import numpy as np
+
 from config import CONFIG
+from planner import (
+    CASE_X0,
+    CASE_Y0,
+    CELL,
+    DAYS,
+    PILL,
+    SLOTS,
+    WALL_H,
+    cell_center,
+    cell_of_xy,
+    make_plan,
+)
+
 
 def _pad16(x):
     """動画コーデック都合で縦横を16の倍数にそろえる。"""
@@ -113,12 +129,13 @@ def main(rx=RX, out="out/sorter.mp4"):
         hit = got == (t["day"], t["slot"]); ok += hit
         print(f"  {t['pill']:6s} → {t['day']}-{t['slot']}  実際: {got}  {'OK' if hit else 'NG'}")
     print(f"正答 {ok}/{len(tasks)}")
-    import json, os as _os
+    import json
+    import os as _os
     try:
         _os.makedirs("out", exist_ok=True)
         with open("out/sort_result.json", "w", encoding="utf-8") as f:
             json.dump({"plan": len(tasks), "ok": ok, "mode": how}, f, ensure_ascii=False)
-    except Exception:
+    except Exception:  # noqa: BLE001, S110  # 結果の保存は失敗してもよい
         pass
 
 

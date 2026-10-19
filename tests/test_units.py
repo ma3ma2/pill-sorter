@@ -3,12 +3,17 @@
 pytest でも `python tests/test_units.py` でも実行できる。
 幾何計算・処方変換・投影など、壊れやすい部分を確認する。
 """
-import os, sys
+import os
+import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src"))
 os.environ.pop("GEMINI_API_KEY", None)      # ルール経路を使う（外部依存なし）
 
 import numpy as np
-import planner, config, overlay
+
+import config
+import overlay
+import planner
 from planner import DAYS, SLOTS
 
 K = np.array([[741.82, 0.0, 240.0], [0.0, 741.82, 270.0], [0.0, 0.0, 1.0]])
@@ -101,9 +106,9 @@ def test_draw_targets_marks_cells():
     out = overlay.draw_targets(img, tasks, K, E)
     assert out.shape == img.shape                       # 形は変わらない
     u, v = overlay._project((*planner.cell_center("mon", "am"), 0.0), K, E)
-    x0, y0 = int(round(u - 20)), int(round(v - 20))
+    x0, y0 = round(u - 20), round(v - 20)
     assert not np.array_equal(out[y0:y0 + 5, x0:x0 + 5], img[y0:y0 + 5, x0:x0 + 5])  # 枠が描かれた
-    cu, cv = int(round(u)), int(round(v))
+    cu, cv = round(u), round(v)
     assert np.array_equal(out[cv, cu], img[cv, cu])     # 中抜き（塗りつぶさない）
 
 

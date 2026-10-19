@@ -5,12 +5,13 @@
 """
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from textutil import find_font
-from planner import DAYS, SLOTS, CELL, CASE_X0, CASE_Y0, DAYS_JP, SLOTS_JP, cell_center
+
 from config import CONFIG
+from planner import CASE_X0, CASE_Y0, CELL, DAYS, DAYS_JP, SLOTS, SLOTS_JP, cell_center
+from textutil import find_font
 
 # 薬の色（config.yaml の pills.colors、0-1 → 0-255）
-RGB = {k: tuple(int(round(c * 255)) for c in v) for k, v in CONFIG["pills"]["colors"].items()}
+RGB = {k: tuple(round(c * 255) for c in v) for k, v in CONFIG["pills"]["colors"].items()}
 
 
 def _font(sz):

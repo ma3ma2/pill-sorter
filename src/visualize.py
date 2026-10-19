@@ -4,12 +4,13 @@
 違えば NG を表示する。matplotlib は使わず PIL だけで描く。
 """
 from PIL import Image, ImageDraw, ImageFont
-from textutil import find_font
-from planner import DAYS, SLOTS, DAYS_JP, SLOTS_JP
+
 from config import CONFIG
+from planner import DAYS, DAYS_JP, SLOTS, SLOTS_JP
+from textutil import find_font
 
 # 色は config.yaml から（0-1 → 0-255）。設定を変えると図も追従する。
-RGB = {k: tuple(int(round(c * 255)) for c in v) for k, v in CONFIG["pills"]["colors"].items()}
+RGB = {k: tuple(round(c * 255) for c in v) for k, v in CONFIG["pills"]["colors"].items()}
 
 
 def grid_image(plan, grid, title="", show_ok=True, show_plan=False):

@@ -7,14 +7,21 @@
 実行:
   python src/sorter_check.py [--check] [--gpu] [--vlm] [--no-video] [--seed N] [--random-faults]
 """
-import os, sys, json, numpy as np, genesis as gs, imageio
+import json
+import os
+import sys
+
+import genesis as gs
+import imageio
+import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+
+import overlay as O
 import sorter as S
 import verifier as V
-import overlay as O
 import visualize as G
-from textutil import find_font
 from config import CONFIG
+from textutil import find_font
 
 PLAN = CONFIG["prescription"]["check"]
 FAULTS = dict(CONFIG["faults"])    # 仕込む失敗の種類（色 -> outside / wrong）
@@ -30,7 +37,7 @@ def _arg_int(flag, default):
     if flag in sys.argv:
         try:
             return int(sys.argv[sys.argv.index(flag) + 1])
-        except Exception:
+        except Exception:  # noqa: BLE001  # 数値でなければ既定値
             return default
     return default
 
@@ -55,7 +62,7 @@ def read_state(img, tasks, K, E, use_vlm=None):
                 print("  [VLM] 画像処理と不一致 → 画像処理を採用。VLM:", vlm)
             else:
                 print("  [VLM] Geminiの回答を解釈できず → 画像処理を採用")
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001  # 失敗したら画像処理のみで続行
             print("  [VLM] Gemini失敗→画像処理のみ:", e)
             vlm = None
     return grid, outside, vlm
@@ -133,7 +140,7 @@ def _record(mode, tasks, score, grid, outside, seed, random_faults=False):
         })
         with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, ensure_ascii=False, indent=1)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  # 記録の失敗は無視して続行
         print("[metrics] 保存に失敗:", e)
 
 
@@ -188,11 +195,11 @@ def run(check, video_path=None, seed=None, random_faults=False):
     print("[確認なしの結果]", grid, "ケース外:", [b["color"] for b in outside])
     try:
         G.draw_grid_figure(tasks, grid, "out/figure_before.png", "確認前")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  # 図の保存失敗は無視して続行
         print("[figure] 保存に失敗:", e)
     if check:
         for r in range(5):
-            wrong, missing, extra = V.compare(tasks, grid)
+            wrong, missing, _extra = V.compare(tasks, grid)
             if not (wrong or missing):
                 break
             for t in tasks:
@@ -226,7 +233,7 @@ def run(check, video_path=None, seed=None, random_faults=False):
     print(f"最終: 確認{'あり' if check else 'なし'} マス正答 {score}/{len(tasks)}  実際={grid} ケース外={[b['color'] for b in outside]}")
     try:
         G.draw_grid_figure(tasks, grid, "out/figure_after.png", "確認後")
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001  # 図の保存失敗は無視して続行
         print("[figure] 保存に失敗:", e)
     print("RESULT " + json.dumps({"mode": mode, "score": score, "total": len(tasks), "seed": seed}))
     _record(mode, tasks, score, grid, outside, seed, random_faults)

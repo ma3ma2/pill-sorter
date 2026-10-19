@@ -36,14 +36,14 @@ def load(path=None):
     if os.path.exists(path):
         data = None
         try:
-            import yaml                                  # PyYAML があれば
+            import yaml  # PyYAML があれば
             with open(path, encoding="utf-8") as f:
                 data = yaml.safe_load(f)
-        except Exception:
+        except Exception:  # noqa: BLE001  # yaml/json のどちらでも読み、無ければ既定値を使う
             try:
                 with open(path, encoding="utf-8") as f:
                     data = json.load(f)
-            except Exception:
+            except Exception:  # noqa: BLE001  # 同上（読めなければ既定値）
                 data = None
         if isinstance(data, dict):
             _merge(cfg, data)

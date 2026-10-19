@@ -1,5 +1,10 @@
 """最小デモ: Franka が薬を1個つかんでケースのマスへ入れ、mp4 に記録する。"""
-import os, sys, numpy as np, genesis as gs
+import os
+import sys
+
+import genesis as gs
+import numpy as np
+
 backend = gs.gpu if "--gpu" in sys.argv else gs.cpu
 gs.init(backend=backend, logging_level="warning")
 scene = gs.Scene(sim_options=gs.options.SimOptions(dt=0.01, substeps=4), show_viewer=False,
